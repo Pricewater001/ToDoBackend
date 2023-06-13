@@ -6,7 +6,7 @@ const taskSchema = new Schema({
   name: String,
   description: String,
   createdAt: String,
-  idDone: Number,
+  isDone: Number,
   
   createdBy: {
      type: mongoose.Schema.Types.ObjectId,

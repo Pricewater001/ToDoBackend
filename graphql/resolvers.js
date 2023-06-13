@@ -30,7 +30,7 @@ module.exports = {
     
   },
   Mutation: {
-    // should add user id to the response  
+    // should add user id and isdoneto the response  
     async createTask(_, { taskInput: { name, description } }, context) {
      auth(context);
     
