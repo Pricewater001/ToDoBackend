@@ -35,13 +35,13 @@ type Task {
   }
 
   input LoginInput {
-    username: String!
-    password: String!
-  }
+  email: String!
+  password: String!
+}
 
   type Query {
     task(ID: ID!): Task!
-    getTasks(amount: Int): [Task]
+    
     getUserTasks: [Task]!
   }
 

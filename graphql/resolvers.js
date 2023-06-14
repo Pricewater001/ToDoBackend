@@ -2,13 +2,15 @@ const Task = require('../models/Task');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
+const { populate } = require('../models/Task');
+
 
 
 const secretKey = process.env.SECRET_KEY;
 
 const generateToken = (user) => {
   return jwt.sign(
-    { userId: user.id, username: user.username },
+    { userId: user._id, username: user.username },
     secretKey,
     { expiresIn: '24h' }
   );
@@ -16,25 +18,25 @@ const generateToken = (user) => {
 
 module.exports = {
   Query: {
-    async task(_, { ID }) {
-      return await Task.findById(ID);
-    },
-    async getTasks(_, { amount }) {
-      return await Task.find().sort({ createdAt: -1 }).limit(amount);
-    },
-    // should retrieve all the tasks related to user
-    async getUserTasks(_, __, context) {
+
+    // Getting task by ID
+    async task(_, { ID }, context) {
       auth(context);
-      return await Task.find({ createdBy: context.userId }).sort({ createdAt: -1 });
+      const task = await Task.findOne({ _id: ID, createdBy: context.userId }).populate('createdBy');
+      if (!task) {
+        throw new Error('Task not found or unauthorized to access.');
+      }
+      return task;
     },
     
   },
   Mutation: {
-    // should add user id to the response  
+    // Getting user tasks 
     async createTask(_, { taskInput: { name, description } }, context) {
       auth(context);
     
       const userId = context.userId;
+      console.log('User ID:', userId);
     
       const createdTask = new Task({
         name: name,
@@ -49,32 +51,38 @@ module.exports = {
       return res;
     },
     
-    
-    
-    
-    
-    
-    
-    
+    // Delete task
     async deleteTask(_, { ID }, context) {
-      
       auth(context);
+      
+      const task = await Task.findOne({ _id: ID, createdBy: context.userId });
+      if (!task) {
+        throw new Error('Task not found or unauthorized to delete.');
+      }
+      
       const wasDeleted = (await Task.deleteOne({ _id: ID })).deletedCount;
      
       return wasDeleted;
     },
- async editTask(_, { ID, taskInput: { name, description, isDone } }, context) {
-     
-       auth(context);
+    
+    // Edit task
+    async editTask(_, { ID, taskInput: { name, description, isDone } }, context) {
+      auth(context);
+      
+      const task = await Task.findOne({ _id: ID, createdBy: context.userId });
+      if (!task) {
+        throw new Error('Task not found or unauthorized to edit.');
+      }
+      
       const wasEdited = (await Task.updateOne(
         { _id: ID },
         { name, description, isDone }
       )).modifiedCount;
-      // 1 if something is modified, 0 if nothing is modified
+      
       return wasEdited;
     },
 
-
+// Rigester with email 
     async register(_, { registerInput: { username, email, password, confirmPassword } }) {
    
 
@@ -107,22 +115,20 @@ module.exports = {
         token,
       };
     },
-    async login(_, { loginInput: { username, password } }) {
-     
-      const user = await User.findOne({ username });
+
+    //Login and generate the token 
+    async login(_, { loginInput: { email, password } }) {
+      const user = await User.findOne({ email });
       if (!user) {
         throw new Error('User not found.');
       }
-
-      
+    
       if (user.password !== password) {
         throw new Error('Invalid password.');
       }
-
-   
+    
       const token = generateToken(user);
-
-      
+    
       return {
         id: user.id,
         ...user._doc,
