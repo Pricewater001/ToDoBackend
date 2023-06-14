@@ -5,7 +5,7 @@ type Task {
   name: String
   description: String
   createdAt: String
-  isDone: Int
+  isDone: Boolean
   
   createdBy: User! 
 }
@@ -23,7 +23,9 @@ type Task {
   input TaskInput {
     name: String
     description: String
+    isDone: Boolean
   }
+  
 
   input RegisterInput {
     username: String!

@@ -10,7 +10,7 @@ const generateToken = (user) => {
   return jwt.sign(
     { userId: user.id, username: user.username },
     secretKey,
-    { expiresIn: '1h' }
+    { expiresIn: '24h' }
   );
 };
 
@@ -30,30 +30,26 @@ module.exports = {
     
   },
   Mutation: {
-    // should add user id and isdoneto the response  
+    // should add user id to the response  
     async createTask(_, { taskInput: { name, description } }, context) {
-     auth(context);
+      auth(context);
     
-    
-      const userId = context.userId; 
+      const userId = context.userId;
     
       const createdTask = new Task({
         name: name,
         description: description,
         createdAt: new Date().toISOString(),
-        isDone: 0,
-        
-        userId: userId, 
+        isDone: false,
+        createdBy: userId,
       });
     
       const res = await createdTask.save();
     
-      return {
-        id: res.id,
-        ...res._doc,
-        userId: res.userId, 
-      };
+      return res;
     },
+    
+    
     
     
     
@@ -67,16 +63,18 @@ module.exports = {
      
       return wasDeleted;
     },
-    async editTask(_, { ID, taskInput: { name, description } }, context) {
+ async editTask(_, { ID, taskInput: { name, description, isDone } }, context) {
      
        auth(context);
       const wasEdited = (await Task.updateOne(
         { _id: ID },
-        { name: name, description: description }
+        { name, description, isDone }
       )).modifiedCount;
       // 1 if something is modified, 0 if nothing is modified
       return wasEdited;
     },
+
+
     async register(_, { registerInput: { username, email, password, confirmPassword } }) {
    
 
