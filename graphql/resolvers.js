@@ -2,7 +2,7 @@ const Task = require('../models/Task');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
-const { populate } = require('../models/Task');
+
 
 
 
@@ -16,27 +16,92 @@ const generateToken = (user) => {
   );
 };
 
+
 module.exports = {
   Query: {
+// Getting a task by ID 
+async task(_, { ID }, context) {
+  
+  auth(context);
 
-    // Getting task by ID
-    async task(_, { ID }, context) {
-      auth(context);
-      const task = await Task.findOne({ _id: ID, createdBy: context.userId }).populate('createdBy');
-      if (!task) {
-        throw new Error('Task not found or unauthorized to access.');
-      }
-      return task;
-    },
+  
+  const task = await Task.findOne({ _id: ID, createdBy: context.userId }).populate('createdBy');
+
+ 
+  if (!task) {
+    throw new Error('Task not found or unauthorized to access.');
+  }
+
+  
+  const user = await User.findById(context.userId);
+
+  
+  if (!user) {
+    throw new Error('User not found.');
+  }
+
+ 
+  user.token = context.token;
+
+  
+  task.createdBy = user;
+
+  return task;
+},
+  
+// Getting tasks for a user 
+async getUserTasks(_, __, context) {
+  auth(context);
+
+  const tasks = await Task.find({ createdBy: context.userId }).populate('createdBy');
+
+  
+  if (!tasks) {
+    throw new Error('Tasks not found.');
+  }
+
+
+  const user = await User.findById(context.userId).select('-password');
+
+  
+  if (!user) {
+    throw new Error('User not found.');
+  }
+
+ 
+  const tasksWithCreatedBy = tasks.map((task) => {
+    return {
+      ...task.toObject(),
+      createdBy: {
+        ...user.toObject(),
+        id: user._id.toString(),
+        token: context.token,
+      },
+    };
+  });
+
+ 
+  const filteredTasks = tasksWithCreatedBy.map(({ name, description, createdAt, isDone, createdBy }) => ({
+    name,
+    description,
+    createdAt,
+    isDone,
+    createdBy,
+  }));
+
+  return filteredTasks;
+}
+
     
   },
   Mutation: {
-    // Getting user tasks 
+    // Create task 
     async createTask(_, { taskInput: { name, description } }, context) {
       auth(context);
     
       const userId = context.userId;
       console.log('User ID:', userId);
+      console.log('User Token:', context.token);
     
       const createdTask = new Task({
         name: name,
@@ -48,9 +113,19 @@ module.exports = {
     
       const res = await createdTask.save();
     
-      return res;
+    
+      const user = await User.findById(userId);
+    
+      
+      createdTask.createdBy = user;
+    
+      console.log('Created Task:', createdTask);
+    
+      return createdTask;
     },
     
+
+
     // Delete task
     async deleteTask(_, { ID }, context) {
       auth(context);

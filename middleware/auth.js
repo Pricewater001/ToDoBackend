@@ -11,8 +11,8 @@ module.exports = (context) => {
       try {
         const user = jwt.verify(token, process.env.SECRET_KEY);
 
-       
         context.userId = user.userId;
+        context.token = token; 
 
         return;
       } catch (err) {
