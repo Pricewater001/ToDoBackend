@@ -1,4 +1,5 @@
 {
     "appService.defaultWebAppToDeploy": "/subscriptions/434ecd4c-b465-49c2-b45d-d224ea12c019/resourceGroups/DefaultResourceGroup-EUS/providers/Microsoft.Web/sites/recipeapin-graphql-majd",
-    "appService.deploySubpath": "graphql"
+    "appService.deploySubpath": "graphql",
+    "dotenv.enableAutocloaking": false
 }
