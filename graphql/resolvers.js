@@ -70,6 +70,7 @@ async getUserTasks(_, __, context) {
 
  
   const tasksWithCreatedBy = tasks.map((task) => {
+    console.log(task)
     return {
       ...task.toObject(),
       createdBy: {
@@ -96,7 +97,7 @@ async getUserTasks(_, __, context) {
   },
   Mutation: {
     // Create task 
-    async createTask(_, { taskInput: { name, description } }, context) {
+    async createTask(_, { taskInput: { name, description , isDone } }, context) {
       auth(context);
     
       const userId = context.userId;
@@ -107,7 +108,7 @@ async getUserTasks(_, __, context) {
         name: name,
         description: description,
         createdAt: new Date().toISOString(),
-        isDone: false,
+        isDone:false,
         createdBy: userId,
       });
     
