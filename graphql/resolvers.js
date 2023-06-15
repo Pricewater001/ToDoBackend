@@ -3,9 +3,6 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 
-
-
-
 const secretKey = process.env.SECRET_KEY;
 
 const generateToken = (user) => {
@@ -80,14 +77,15 @@ async getUserTasks(_, __, context) {
     };
   });
 
- 
-  const filteredTasks = tasksWithCreatedBy.map(({ name, description, createdAt, isDone, createdBy }) => ({
+  const filteredTasks = tasksWithCreatedBy.map(({ _id, name, description, createdAt, isDone, createdBy }) => ({
+    taskId: _id.toString(),
     name,
     description,
     createdAt,
     isDone,
     createdBy,
   }));
+ 
 
   return filteredTasks;
 }
