@@ -2,6 +2,7 @@ const { gql } = require('apollo-server');
 
 module.exports = gql`
 type Task {
+  _id: ID!
   name: String
   description: String
   createdAt: String

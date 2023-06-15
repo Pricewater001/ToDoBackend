@@ -78,7 +78,7 @@ async getUserTasks(_, __, context) {
   });
 
   const filteredTasks = tasksWithCreatedBy.map(({ _id, name, description, createdAt, isDone, createdBy }) => ({
-    taskId: _id.toString(),
+    _id: _id.toString(),
     name,
     description,
     createdAt,
